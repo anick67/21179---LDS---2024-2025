@@ -16,7 +16,7 @@ public class InventoryController
     {
         Console.WriteLine($"[EVENTO] New item added: {item.Name}");
     }
- 
+
     //add to 12-04-2025 (event handler method)
     private void OnItemUpdated(object sender, Item item)
     {

@@ -6,7 +6,7 @@ public interface IInventoryView
     void ShowMessage(string message);
     void RefreshView();
 }
- 
+#teste
 // Example implementation for a WinForms app
 public class InventoryFormView : Form, IInventoryView
 {
