@@ -4,6 +4,8 @@ using System.Windows.Forms;
 using GestaoInventario.Controllers;
 using GestaoInventario.Models;
 using GestaoInventario.Views;
+using System.Globalization;
+using System.Threading;
 
 namespace GestaoInventario
 {
@@ -12,6 +14,10 @@ namespace GestaoInventario
         [STAThread]
         static void Main()
         {
+            CultureInfo euroCulture = new CultureInfo("pt-PT"); // Portugal, Euro
+            Thread.CurrentThread.CurrentCulture = euroCulture;
+            Thread.CurrentThread.CurrentUICulture = euroCulture;
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
@@ -25,9 +31,8 @@ namespace GestaoInventario
 
             InventoryModel model = new InventoryModel(dataFilePath);
             InventoryController controller = new InventoryController(model);
-            InventoryFormView view = new InventoryFormView(controller);
+            Form1 view = new Form1(controller);
 
-            // Protege o arranque com try/catch
             try
             {
                 Application.Run(view);

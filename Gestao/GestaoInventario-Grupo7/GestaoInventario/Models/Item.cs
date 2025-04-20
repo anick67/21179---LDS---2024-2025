@@ -34,7 +34,7 @@ namespace GestaoInventario.Models
         public decimal Price { get; set; }
 
         /// <summary>
-        /// Categoria do item (ex: Informática, Escritório).
+        /// Categoria do item (ex: Papelaria, Jardim).
         /// </summary>
         public string? Category { get; set; }
 

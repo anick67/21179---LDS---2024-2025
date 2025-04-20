@@ -60,12 +60,18 @@ namespace GestaoInventario.Controllers
                     string.IsNullOrWhiteSpace(category) || quantity < 0 || price < 0)
                     return false;
 
-                if (_model.GetAllItems().Any(i => i.Name == name))
-                    return false;
+                // Garante que o ID é único
+                string newId;
+                var existingIds = _model.GetAllItems().Select(i => i.Id).ToHashSet();
+
+                do
+                {
+                    newId = new Random().Next(10000, 99999).ToString();
+                } while (existingIds.Contains(newId));
 
                 var item = new Item
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = newId,
                     Name = name,
                     Description = description,
                     Quantity = quantity,
@@ -89,14 +95,16 @@ namespace GestaoInventario.Controllers
         {
             try
             {
+                if (string.IsNullOrEmpty(id))
+                    return false;
+
                 var item = _model.GetItemById(id);
-                if (item != null)
-                {
-                    item.Quantity = newQuantity;
-                    _model.UpdateItem(item);
-                    return true;
-                }
-                return false;
+                if (item == null)
+                    return false;
+
+                item.Quantity = newQuantity;
+                _model.UpdateItem(item);
+                return true;
             }
             catch
             {
@@ -111,6 +119,9 @@ namespace GestaoInventario.Controllers
         {
             try
             {
+                if (string.IsNullOrEmpty(id))
+                    return false;
+
                 _model.DeleteItem(id);
                 return true;
             }
@@ -125,9 +136,9 @@ namespace GestaoInventario.Controllers
         /// </summary>
         public List<Item> SearchInventory(string query) =>
             _model.GetAllItems().Where(i =>
-                i.Name?.Contains(query, StringComparison.OrdinalIgnoreCase) == true ||
-                i.Description?.Contains(query, StringComparison.OrdinalIgnoreCase) == true ||
-                i.Category?.Contains(query, StringComparison.OrdinalIgnoreCase) == true).ToList();
+                (i.Name != null && i.Name.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+                (i.Description != null && i.Description.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+                (i.Category != null && i.Category.Contains(query, StringComparison.OrdinalIgnoreCase))).ToList();
 
         /// <summary>
         /// Devolve a lista de itens com stock abaixo do limite definido.

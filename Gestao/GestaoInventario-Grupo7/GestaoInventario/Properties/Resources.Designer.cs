@@ -59,5 +59,15 @@ namespace GestaoInventario.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Logo_Grupo_7 {
+            get {
+                object obj = ResourceManager.GetObject("Logo Grupo 7", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
