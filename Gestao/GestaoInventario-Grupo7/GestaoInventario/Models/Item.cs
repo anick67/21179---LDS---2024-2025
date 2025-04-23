@@ -2,45 +2,30 @@
 
 namespace GestaoInventario.Models
 {
-    /// <summary>
-    /// Representa um item no inventário da aplicação.
-    /// Contém informações essenciais como nome, quantidade, preço e categoria.
-    /// </summary>
+    // Representa um item no inventário da aplicação
+    // Contém informações essenciais como nome, quantidade, preço e categoria
     public class Item
     {
-        /// <summary>
-        /// Identificador único do item.
-        /// </summary>
+      
+        // Identificador único do item
         public string? Id { get; set; }
 
-        /// <summary>
-        /// Nome do item.
-        /// </summary>
+        // Nome do item
         public string? Name { get; set; }
 
-        /// <summary>
-        /// Descrição do item.
-        /// </summary>
+        // Descrição do item
         public string? Description { get; set; }
 
-        /// <summary>
-        /// Quantidade disponível em stock.
-        /// </summary>
+        // Quantidade disponível em stock
         public int Quantity { get; set; }
 
-        /// <summary>
-        /// Preço do item.
-        /// </summary>
+        // Preço do item
         public decimal Price { get; set; }
-
-        /// <summary>
-        /// Categoria do item (ex: Papelaria, Jardim).
-        /// </summary>
+      
+        // Categoria do item (ex: Papelaria, Jardim)
         public string? Category { get; set; }
 
-        /// <summary>
-        /// Data e hora da última modificação deste item.
-        /// </summary>
+        // Data e hora da última modificação deste item
         public DateTime LastUpdated { get; set; }
     }
 }

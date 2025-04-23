@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using ClosedXML.Excel;
+using System.IO;
 using GestaoInventario.Controllers;
 using GestaoInventario.Models;
 
@@ -10,6 +12,8 @@ namespace GestaoInventario.Views
     {
         private readonly InventoryController _controller;
         private bool bloquearEventos = false;
+        private bool temStockBaixoParaAlertar = false;
+        private bool alertaMostrado = false;
 
         public Form1(InventoryController controller)
         {
@@ -18,6 +22,7 @@ namespace GestaoInventario.Views
 
             itemsGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             itemsGrid.MultiSelect = false;
+            itemsGrid.ShowCellToolTips = true;
 
             if (itemsGrid.Columns.Count > 0)
             {
@@ -37,8 +42,6 @@ namespace GestaoInventario.Views
 
             // Desliga o evento antes de carregar
             itemsGrid.SelectionChanged -= itemsGrid_SelectionChanged;
-
-            RefreshView(); // Atualizar a grid e limpar
 
             // Volta a ligar o evento
             itemsGrid.SelectionChanged += itemsGrid_SelectionChanged;
@@ -138,13 +141,14 @@ namespace GestaoInventario.Views
             categoryComboBox.Text = row.Cells["Category"].Value?.ToString();
         }
 
-        public void DisplayInventory(List<Item> items)
+        public bool DisplayInventory(List<Item> items)
         {
             itemsGrid.Rows.Clear();
+            bool temStockBaixo = false;
 
             foreach (var item in items)
             {
-                itemsGrid.Rows.Add(
+                int rowIndex = itemsGrid.Rows.Add(
                     item.Name,
                     item.Category,
                     item.Description,
@@ -152,14 +156,26 @@ namespace GestaoInventario.Views
                     item.Quantity,
                     item.Price
                 );
+
+                if (item.Quantity < 5)
+                {
+                    itemsGrid.Rows[rowIndex].DefaultCellStyle.BackColor = System.Drawing.Color.Moccasin;
+                    foreach (DataGridViewCell cell in itemsGrid.Rows[rowIndex].Cells)
+                    {
+                        cell.ToolTipText = "Stock crítico";
+                    }
+                    temStockBaixo = true;
+                }
             }
+
+            return temStockBaixo;
         }
 
         public void RefreshView()
         {
             bloquearEventos = true;
 
-            DisplayInventory(_controller.GetInventory());
+            temStockBaixoParaAlertar = DisplayInventory(_controller.GetInventory());
 
             if (itemsGrid.Rows.Count > 0)
             {
@@ -170,6 +186,8 @@ namespace GestaoInventario.Views
             LimparCampos();
 
             bloquearEventos = false;
+
+            this.Activate(); // Força nova ativação após dados carregados
         }
 
         private void LimparCampos()
@@ -231,13 +249,110 @@ namespace GestaoInventario.Views
             LimparCampos();
 
             bloquearEventos = false;
+
+            // Adia a chamada de RefreshView para garantir que o formulário já está visível
+            BeginInvoke(new Action(() =>
+            {
+                RefreshView();
+
+                if (temStockBaixoParaAlertar && !alertaMostrado)
+                {
+                    alertaMostrado = true;
+
+                    MessageBox.Show("Atenção: Existem produtos com stock inferior a 5 unidades.",
+                                    "Aviso de Stock", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                    temStockBaixoParaAlertar = false;
+
+                    itemsGrid.ClearSelection();
+                    itemsGrid.CurrentCell = null;
+                }
+            }));
         }
 
         private void clearButton_Click(object sender, EventArgs e)
         {
-            LimparCampos();             // Limpar todos os campos
-            itemsGrid.ClearSelection();  // Limpar seleção da grid
-            itemsGrid.CurrentCell = null; // Nenhuma célula ativa
+            LimparCampos();
+            itemsGrid.ClearSelection();
+            itemsGrid.CurrentCell = null;
+        }
+
+        private void btnExportarTodos_Click(object sender, EventArgs e)
+        {
+            var todos = _controller.GetInventory();
+            ExportarParaExcel(todos, "Inventario_Completo.xlsx");
+
+        }
+
+        private void btnExportarStockBaixo_Click(object sender, EventArgs e)
+        {
+
+            var baixos = _controller.GetInventory().Where(i => i.Quantity < 5).ToList();
+            ExportarParaExcel(baixos, "Inventario_Critico.xlsx");
+        }
+
+        private void ExportarParaExcel(List<Item> items, string tituloFicheiro)
+        {
+            if (items == null || items.Count == 0)
+            {
+                MessageBox.Show("Não há dados para exportar.", "Exportação", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using (var saveDialog = new SaveFileDialog())
+            {
+                saveDialog.Filter = "Ficheiros Excel (*.xlsx)|*.xlsx";
+                saveDialog.FileName = tituloFicheiro;
+
+                if (saveDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        using (var workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("Inventário");
+
+                            // Cabeçalhos
+                            string[] headers = { "Nome", "Categoria", "Descrição", "ID", "Quantidade", "Preço" };
+                            for (int i = 0; i < headers.Length; i++)
+                            {
+                                var cell = worksheet.Cell(1, i + 1);
+                                cell.Value = headers[i];
+                                cell.Style.Font.Bold = true;
+                                cell.Style.Fill.BackgroundColor = XLColor.LightGray;
+                            }
+
+                            // Dados
+                            int row = 2;
+                            foreach (var item in items)
+                            {
+                                worksheet.Cell(row, 1).Value = item.Name;
+                                worksheet.Cell(row, 2).Value = item.Category;
+                                worksheet.Cell(row, 3).Value = item.Description;
+                                worksheet.Cell(row, 4).Value = item.Id;
+                                worksheet.Cell(row, 5).Value = item.Quantity;
+                                worksheet.Cell(row, 6).Value = item.Price;
+                                worksheet.Cell(row, 6).Style.NumberFormat.Format = "€ #,##0.00"; // Formato moeda
+                                row++;
+                            }
+
+                            worksheet.Columns().AdjustToContents(); // Largura automática
+                            workbook.SaveAs(saveDialog.FileName);
+                        }
+
+                        MessageBox.Show("Exportação concluída com sucesso!", "Exportação", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (IOException ioEx) when ((ioEx.HResult & 0xFFFF) == 32)
+                    {
+                        MessageBox.Show("O ficheiro está aberto noutra aplicação. Por favor, feche o ficheiro antes de exportar novamente.",
+                                        "Ficheiro em uso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Erro ao exportar: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
         }
     }
 }

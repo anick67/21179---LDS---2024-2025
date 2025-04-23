@@ -46,6 +46,8 @@
             searchButton = new Button();
             pictureBox1 = new PictureBox();
             clearButton = new Button();
+            btnExportarStockBaixo = new Button();
+            btnExportarTodos = new Button();
             ((System.ComponentModel.ISupportInitialize)quantityNumeric).BeginInit();
             ((System.ComponentModel.ISupportInitialize)priceNumeric).BeginInit();
             ((System.ComponentModel.ISupportInitialize)itemsGrid).BeginInit();
@@ -110,7 +112,7 @@
             // 
             label7.AutoSize = true;
             label7.Font = new Font("Segoe UI", 7.8F);
-            label7.Location = new Point(414, 200);
+            label7.Location = new Point(345, 203);
             label7.Name = "label7";
             label7.Size = new Size(131, 17);
             label7.TabIndex = 1;
@@ -120,14 +122,14 @@
             // 
             nameTextBox.Location = new Point(165, 20);
             nameTextBox.Name = "nameTextBox";
-            nameTextBox.Size = new Size(380, 27);
+            nameTextBox.Size = new Size(406, 27);
             nameTextBox.TabIndex = 13;
             // 
             // descriptionTextBox
             // 
             descriptionTextBox.Location = new Point(165, 58);
             descriptionTextBox.Name = "descriptionTextBox";
-            descriptionTextBox.Size = new Size(380, 27);
+            descriptionTextBox.Size = new Size(406, 27);
             descriptionTextBox.TabIndex = 12;
             // 
             // idTextBox
@@ -162,9 +164,9 @@
             // 
             // searchTextBox
             // 
-            searchTextBox.Location = new Point(414, 223);
+            searchTextBox.Location = new Point(344, 223);
             searchTextBox.Name = "searchTextBox";
-            searchTextBox.Size = new Size(457, 27);
+            searchTextBox.Size = new Size(278, 27);
             searchTextBox.TabIndex = 2;
             // 
             // itemsGrid
@@ -237,7 +239,7 @@
             // 
             // addButton
             // 
-            addButton.Location = new Point(620, 19);
+            addButton.Location = new Point(597, 19);
             addButton.Name = "addButton";
             addButton.Size = new Size(125, 29);
             addButton.TabIndex = 6;
@@ -246,7 +248,7 @@
             // 
             // updateButton
             // 
-            updateButton.Location = new Point(620, 57);
+            updateButton.Location = new Point(597, 57);
             updateButton.Name = "updateButton";
             updateButton.Size = new Size(125, 29);
             updateButton.TabIndex = 5;
@@ -255,7 +257,7 @@
             // 
             // deleteButton
             // 
-            deleteButton.Location = new Point(620, 95);
+            deleteButton.Location = new Point(597, 97);
             deleteButton.Name = "deleteButton";
             deleteButton.Size = new Size(125, 29);
             deleteButton.TabIndex = 4;
@@ -264,26 +266,28 @@
             // 
             // searchButton
             // 
-            searchButton.Location = new Point(877, 222);
+            searchButton.Location = new Point(628, 221);
             searchButton.Name = "searchButton";
             searchButton.Size = new Size(94, 29);
             searchButton.TabIndex = 3;
-            searchButton.Text = "Pesquisar";
+            searchButton.Text = "🔍 Pesquisar";
+            searchButton.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            searchButton.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             searchButton.Click += searchButton_Click;
             // 
             // pictureBox1
             // 
             pictureBox1.Image = Properties.Resources.Logo_Grupo_7;
-            pictureBox1.Location = new Point(824, 10);
+            pictureBox1.Location = new Point(812, 5);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(147, 93);
+            pictureBox1.Size = new Size(159, 111);
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
             // 
             // clearButton
             // 
-            clearButton.Location = new Point(620, 146);
+            clearButton.Location = new Point(597, 138);
             clearButton.Name = "clearButton";
             clearButton.Size = new Size(125, 29);
             clearButton.TabIndex = 20;
@@ -291,11 +295,35 @@
             clearButton.UseVisualStyleBackColor = true;
             clearButton.Click += clearButton_Click;
             // 
+            // btnExportarStockBaixo
+            // 
+            btnExportarStockBaixo.BackColor = SystemColors.GradientInactiveCaption;
+            btnExportarStockBaixo.Location = new Point(812, 221);
+            btnExportarStockBaixo.Name = "btnExportarStockBaixo";
+            btnExportarStockBaixo.Size = new Size(159, 29);
+            btnExportarStockBaixo.TabIndex = 21;
+            btnExportarStockBaixo.Text = "Exportar Stock Baixo";
+            btnExportarStockBaixo.UseVisualStyleBackColor = false;
+            btnExportarStockBaixo.Click += btnExportarStockBaixo_Click;
+            // 
+            // btnExportarTodos
+            // 
+            btnExportarTodos.BackColor = SystemColors.GradientInactiveCaption;
+            btnExportarTodos.Location = new Point(812, 185);
+            btnExportarTodos.Name = "btnExportarTodos";
+            btnExportarTodos.Size = new Size(159, 29);
+            btnExportarTodos.TabIndex = 22;
+            btnExportarTodos.Text = "Exportar Inventário";
+            btnExportarTodos.UseVisualStyleBackColor = false;
+            btnExportarTodos.Click += btnExportarTodos_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(999, 570);
+            Controls.Add(btnExportarTodos);
+            Controls.Add(btnExportarStockBaixo);
             Controls.Add(clearButton);
             Controls.Add(pictureBox1);
             Controls.Add(label7);
@@ -359,5 +387,7 @@
         private DataGridViewTextBoxColumn Quantidade;
         private DataGridViewTextBoxColumn Price;
         private Button clearButton;
+        private Button btnExportarStockBaixo;
+        private Button btnExportarTodos;
     }
 }

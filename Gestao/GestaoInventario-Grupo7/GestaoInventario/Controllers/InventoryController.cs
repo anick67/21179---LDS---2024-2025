@@ -5,17 +5,17 @@ using GestaoInventario.Models;
 
 namespace GestaoInventario.Controllers
 {
-    /// <summary>
-    /// Controlador responsável pela ligação entre o modelo e a interface gráfica.
-    /// Processa ações do utilizador e comunica com o modelo de dados.
-    /// </summary>
+    
+    // Controlador responsável pela ligação entre o modelo e a interface gráfica.
+    // Processa ações do utilizador e comunica com o modelo de dados.
+    
     public class InventoryController
     {
         private readonly InventoryModel _model;
 
-        /// <summary>
-        /// Inicializa o controlador e subscreve eventos do modelo.
-        /// </summary>
+       
+        // Inicializa o controlador e subscreve eventos do modelo.
+      
         public InventoryController(InventoryModel model)
         {
             _model = model;
@@ -23,35 +23,35 @@ namespace GestaoInventario.Controllers
             _model.ItemUpdated += OnItemUpdated;
         }
 
-        /// <summary>
-        /// Evento executado quando um item é adicionado.
-        /// </summary>
+       
+        // Evento executado quando um item é adicionado.
+   
         private void OnItemAdded(object sender, Item item)
         {
             Console.WriteLine($"[EVENTO] Novo item adicionado: {item.Name}");
         }
 
-        /// <summary>
-        /// Evento executado quando um item é atualizado.
-        /// </summary>
+  
+        // Evento executado quando um item é atualizado.
+   
         private void OnItemUpdated(object sender, Item item)
         {
             Console.WriteLine($"[EVENTO] Quantidade do item atualizada: {item.Quantity}");
         }
 
-        /// <summary>
-        /// Devolve a lista completa de itens no inventário.
-        /// </summary>
+      
+        // Devolve a lista completa de itens no inventário.
+  
         public List<Item> GetInventory() => _model.GetAllItems();
 
-        /// <summary>
-        /// Devolve um item específico com base no ID.
-        /// </summary>
+      
+        // Devolve um item específico com base no ID.
+    
         public Item? GetItemById(string id) => _model.GetItemById(id);
 
-        /// <summary>
-        /// Adiciona um novo item ao inventário com validações.
-        /// </summary>
+    
+        // Adiciona um novo item ao inventário com validações.
+   
         public bool AddNewItem(string name, string description, int quantity, decimal price, string category)
         {
             try
@@ -88,9 +88,9 @@ namespace GestaoInventario.Controllers
             }
         }
 
-        /// <summary>
-        /// Atualiza a quantidade de um item com base no ID.
-        /// </summary>
+     
+        // Atualiza a quantidade de um item com base no ID
+
         public bool UpdateItemQuantity(string id, int newQuantity)
         {
             try
@@ -112,9 +112,9 @@ namespace GestaoInventario.Controllers
             }
         }
 
-        /// <summary>
-        /// Remove um item do inventário.
-        /// </summary>
+   
+        // Remove um item do inventário
+    
         public bool DeleteItem(string id)
         {
             try
@@ -131,18 +131,18 @@ namespace GestaoInventario.Controllers
             }
         }
 
-        /// <summary>
-        /// Pesquisa por itens que contenham o texto indicado no nome, descrição ou categoria.
-        /// </summary>
+       
+        // Pesquisa por itens que contenham o texto indicado no nome, descrição ou categoria
+       
         public List<Item> SearchInventory(string query) =>
             _model.GetAllItems().Where(i =>
                 (i.Name != null && i.Name.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
                 (i.Description != null && i.Description.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
                 (i.Category != null && i.Category.Contains(query, StringComparison.OrdinalIgnoreCase))).ToList();
 
-        /// <summary>
-        /// Devolve a lista de itens com stock abaixo do limite definido.
-        /// </summary>
+   
+        // Devolve a lista de itens com stock abaixo do limite definido.
+    
         public List<Item> GetLowStockAlert(int threshold = 5) => _model.GetLowStockItems(threshold);
     }
 }
