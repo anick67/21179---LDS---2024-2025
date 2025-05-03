@@ -20,6 +20,16 @@ namespace GestaoInventario.Views
             InitializeComponent();
             _controller = controller;
 
+            // Impede casas decimais na quantidade e colar texto
+            quantityNumeric.DecimalPlaces = 0;
+            quantityNumeric.Minimum = 0;
+            quantityNumeric.Maximum = 99999;
+            quantityNumeric.KeyPress += QuantityNumeric_KeyPress;
+            quantityNumeric.Controls[1].KeyDown += QuantityNumeric_KeyDown;
+
+            // Impede colar texto no campo preço
+            priceNumeric.Controls[1].KeyDown += PriceNumeric_KeyDown;
+
             itemsGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             itemsGrid.MultiSelect = false;
             itemsGrid.ShowCellToolTips = true;
@@ -35,9 +45,11 @@ namespace GestaoInventario.Views
                 itemsGrid.Columns[5].DefaultCellStyle.Format = "C2";
             }
 
+            categoryComboBox.SelectedIndexChanged += categoryComboBox_SelectedIndexChanged;
+
             categoryComboBox.Items.AddRange(new string[]
             {
-                "Guloseimas", "Bebidas", "Higiene", "Papelaria", "Eletrónica", "Jardim", "Outros"
+            "Nova Categoria...", "Guloseimas", "Bebidas", "Higiene", "Papelaria", "Eletrónica", "Jardim", "Outros"
             });
 
             // Desliga o evento antes de carregar
@@ -48,6 +60,39 @@ namespace GestaoInventario.Views
 
             // Quando o formulário for exibido
             this.Shown += Form1_Shown;
+
+            // Cabeçalho da grelha personalizado
+            itemsGrid.EnableHeadersVisualStyles = false;
+            itemsGrid.ColumnHeadersDefaultCellStyle.BackColor = Color.DimGray;
+            itemsGrid.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            itemsGrid.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9);
+        }
+
+        private void QuantityNumeric_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            // Só permite dígitos e teclas de controlo como backspace
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void QuantityNumeric_KeyDown(object? sender, KeyEventArgs e)
+        {
+            // Impede colar com Ctrl+V
+            if (e.Control && e.KeyCode == Keys.V)
+            {
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        private void PriceNumeric_KeyDown(object? sender, KeyEventArgs e)
+        {
+            // Bloqueia colar com Ctrl+V
+            if (e.Control && e.KeyCode == Keys.V)
+            {
+                e.SuppressKeyPress = true;
+            }
         }
 
         private void addButton_Click(object sender, EventArgs e)
@@ -59,6 +104,26 @@ namespace GestaoInventario.Views
             int quantity = (int)quantityNumeric.Value;
             decimal price = priceNumeric.Value;
             string category = categoryComboBox.Text;
+
+            // Alerta se quantidade ou preço forem zero
+            if (quantity == 0 || price == 0)
+            {
+                DialogResult confirmacao = MessageBox.Show(
+                    "Está a adicionar um produto com " +
+                    (quantity == 0 && price == 0 ? "quantidade e preço" :
+                     quantity == 0 ? "quantidade" :
+                     "preço") +
+                    " zero.\n\nDeseja continuar?",
+                    "Confirmação",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning
+                );
+
+                if (confirmacao == DialogResult.No)
+                {
+                    return;
+                }
+            }
 
             if (_controller.AddNewItem(name, description, quantity, price, category))
             {
@@ -92,17 +157,32 @@ namespace GestaoInventario.Views
         {
             if (itemsGrid.SelectedRows.Count > 0)
             {
-                string id = itemsGrid.SelectedRows[0].Cells["ID"].Value?.ToString() ?? "";
+                string nomeProduto = itemsGrid.SelectedRows[0].Cells["NameColumn"].Value?.ToString() ?? "(sem nome)";
+                string descricao = itemsGrid.SelectedRows[0].Cells["Description"].Value?.ToString() ?? "(sem descrição)";
+                string id = itemsGrid.SelectedRows[0].Cells["ID"].Value?.ToString() ?? "(sem ID)";
 
-                if (_controller.DeleteItem(id))
+                DialogResult resultado = MessageBox.Show(
+                    $"Tem a certeza que deseja remover o produto:\n\n" +
+                    $"Nome: {nomeProduto}\n" +
+                    $"Descrição: {descricao}\n" +
+                    $"ID: {id}",
+                    "Confirmação de Remoção",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning
+                );
+
+                if (resultado == DialogResult.Yes)
                 {
-                    ShowMessage("Removido com sucesso.");
-                    RefreshView();
-                    LimparCampos();
-                }
-                else
-                {
-                    ShowMessage("Erro ao remover.");
+                    if (_controller.DeleteItem(id))
+                    {
+                        ShowMessage("Produto removido com sucesso.");
+                        RefreshView();
+                        LimparCampos();
+                    }
+                    else
+                    {
+                        ShowMessage("Erro ao remover o produto.");
+                    }
                 }
             }
             else
@@ -120,6 +200,30 @@ namespace GestaoInventario.Views
             itemsGrid.ClearSelection();
             itemsGrid.CurrentCell = null;
             LimparCampos();
+        }
+
+        private void categoryComboBox_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (categoryComboBox.SelectedItem?.ToString() == "Nova categoria...")
+            {
+                string novaCategoria = PromptInput("Nova Categoria", "Introduza o nome da nova categoria:");
+
+                if (!string.IsNullOrWhiteSpace(novaCategoria))
+                {
+                    if (!categoryComboBox.Items.Contains(novaCategoria))
+                    {
+                        // Inserir antes de "Nova categoria..."
+                        categoryComboBox.Items.Insert(categoryComboBox.Items.Count - 1, novaCategoria);
+                    }
+
+                    categoryComboBox.SelectedItem = novaCategoria;
+                }
+                else
+                {
+                    // Voltar atrás caso o utilizador cancele
+                    categoryComboBox.SelectedIndex = -1;
+                }
+            }
         }
 
         private void itemsGrid_SelectionChanged(object? sender, EventArgs e)
@@ -198,6 +302,29 @@ namespace GestaoInventario.Views
             priceNumeric.Value = 0;
             categoryComboBox.SelectedIndex = -1;
             idTextBox.Text = "";
+        }
+
+        private string PromptInput(string titulo, string mensagem)
+        {
+            Form prompt = new Form()
+            {
+                Width = 400,
+                Height = 150,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                StartPosition = FormStartPosition.CenterParent,
+                Text = titulo
+            };
+
+            Label lbl = new Label() { Left = 20, Top = 20, Text = mensagem, Width = 340 };
+            TextBox txt = new TextBox() { Left = 20, Top = 50, Width = 340 };
+            Button confirmar = new Button() { Text = "OK", Left = 270, Width = 90, Top = 80, DialogResult = DialogResult.OK };
+
+            prompt.Controls.Add(lbl);
+            prompt.Controls.Add(txt);
+            prompt.Controls.Add(confirmar);
+            prompt.AcceptButton = confirmar;
+
+            return prompt.ShowDialog() == DialogResult.OK ? txt.Text.Trim() : "";
         }
 
         public void ShowMessage(string message)
