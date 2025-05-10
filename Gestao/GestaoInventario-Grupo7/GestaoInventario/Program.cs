@@ -6,6 +6,8 @@ using GestaoInventario.Models;
 using GestaoInventario.Views;
 using System.Globalization;
 using System.Threading;
+using GestaoInventario.Interfaces;
+using GestaoInventario.Services;
 
 namespace GestaoInventario
 {
@@ -31,7 +33,12 @@ namespace GestaoInventario
 
             InventoryModel model = new InventoryModel(dataFilePath);
             InventoryController controller = new InventoryController(model);
-            Form1 view = new Form1(controller);
+
+            // Instanciar o exportador concreto
+            IExportadorInventario exportador = new ExportadorExcel();
+
+            // Passar o exportador como dependência
+            Form1 view = new Form1(controller, exportador);
 
             try
             {

@@ -5,20 +5,24 @@ using ClosedXML.Excel;
 using System.IO;
 using GestaoInventario.Controllers;
 using GestaoInventario.Models;
+using GestaoInventario.Interfaces;
+using GestaoInventario.Services;
 
 namespace GestaoInventario.Views
 {
     public partial class Form1 : Form
     {
         private readonly InventoryController _controller;
+        private readonly IExportadorInventario _exportador;
         private bool bloquearEventos = false;
         private bool temStockBaixoParaAlertar = false;
         private bool alertaMostrado = false;
 
-        public Form1(InventoryController controller)
+        public Form1(InventoryController controller, IExportadorInventario exportador)
         {
             InitializeComponent();
             _controller = controller;
+            _exportador = exportador;
 
             // Impede casas decimais na quantidade e colar texto
             quantityNumeric.DecimalPlaces = 0;
@@ -37,12 +41,18 @@ namespace GestaoInventario.Views
             if (itemsGrid.Columns.Count > 0)
             {
                 itemsGrid.Columns[0].Width = 225;
-                itemsGrid.Columns[1].Width = 110;
-                itemsGrid.Columns[2].Width = 260;
+                itemsGrid.Columns[1].Width = 105;
+                itemsGrid.Columns[2].Width = 255;
                 itemsGrid.Columns[3].Width = 63;
-                itemsGrid.Columns[4].Width = 80;
-                itemsGrid.Columns[5].Width = 85;
+                itemsGrid.Columns[4].Width = 78;
+                itemsGrid.Columns[5].Width = 80;
+                itemsGrid.Columns[3].HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                itemsGrid.Columns[3].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                itemsGrid.Columns[4].HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                itemsGrid.Columns[4].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
                 itemsGrid.Columns[5].DefaultCellStyle.Format = "C2";
+                itemsGrid.Columns[5].HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                itemsGrid.Columns[5].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
             }
 
             categoryComboBox.SelectedIndexChanged += categoryComboBox_SelectedIndexChanged;
@@ -407,79 +417,15 @@ namespace GestaoInventario.Views
         private void btnExportarTodos_Click(object sender, EventArgs e)
         {
             var todos = _controller.GetInventory();
-            ExportarParaExcel(todos, "Inventario_Completo.xlsx");
-
+            var destino = new DestinoFicheiro("Inventario_Completo.xlsx");
+            _exportador.Exportar(todos, destino);
         }
 
         private void btnExportarStockBaixo_Click(object sender, EventArgs e)
         {
-
             var baixos = _controller.GetInventory().Where(i => i.Quantity < 5).ToList();
-            ExportarParaExcel(baixos, "Inventario_Critico.xlsx");
-        }
-
-        private void ExportarParaExcel(List<Item> items, string tituloFicheiro)
-        {
-            if (items == null || items.Count == 0)
-            {
-                MessageBox.Show("Não há dados para exportar.", "Exportação", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            using (var saveDialog = new SaveFileDialog())
-            {
-                saveDialog.Filter = "Ficheiros Excel (*.xlsx)|*.xlsx";
-                saveDialog.FileName = tituloFicheiro;
-
-                if (saveDialog.ShowDialog() == DialogResult.OK)
-                {
-                    try
-                    {
-                        using (var workbook = new XLWorkbook())
-                        {
-                            var worksheet = workbook.Worksheets.Add("Inventário");
-
-                            // Cabeçalhos
-                            string[] headers = { "Nome", "Categoria", "Descrição", "ID", "Quantidade", "Preço" };
-                            for (int i = 0; i < headers.Length; i++)
-                            {
-                                var cell = worksheet.Cell(1, i + 1);
-                                cell.Value = headers[i];
-                                cell.Style.Font.Bold = true;
-                                cell.Style.Fill.BackgroundColor = XLColor.LightGray;
-                            }
-
-                            // Dados
-                            int row = 2;
-                            foreach (var item in items)
-                            {
-                                worksheet.Cell(row, 1).Value = item.Name;
-                                worksheet.Cell(row, 2).Value = item.Category;
-                                worksheet.Cell(row, 3).Value = item.Description;
-                                worksheet.Cell(row, 4).Value = item.Id;
-                                worksheet.Cell(row, 5).Value = item.Quantity;
-                                worksheet.Cell(row, 6).Value = item.Price;
-                                worksheet.Cell(row, 6).Style.NumberFormat.Format = "€ #,##0.00"; // Formato moeda
-                                row++;
-                            }
-
-                            worksheet.Columns().AdjustToContents(); // Largura automática
-                            workbook.SaveAs(saveDialog.FileName);
-                        }
-
-                        MessageBox.Show("Exportação concluída com sucesso!", "Exportação", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    catch (IOException ioEx) when ((ioEx.HResult & 0xFFFF) == 32)
-                    {
-                        MessageBox.Show("O ficheiro está aberto noutra aplicação. Por favor, feche o ficheiro antes de exportar novamente.",
-                                        "Ficheiro em uso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Erro ao exportar: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
+            var destino = new DestinoFicheiro("Inventario_Critico.xlsx");
+            _exportador.Exportar(baixos, destino);
         }
     }
 }
