@@ -88,33 +88,14 @@ namespace GestaoInventario.Controllers
             }
         }
 
-     
-        // Atualiza a quantidade de um item com base no ID
-
-        public bool UpdateItemQuantity(string id, int newQuantity)
+        public bool UpdateItem(string id, string name, string description, int quantity, decimal price, string category)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(id))
-                    return false;
-
-                var item = _model.GetItemById(id);
-                if (item == null)
-                    return false;
-
-                item.Quantity = newQuantity;
-                _model.UpdateItem(item);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            _model.UpdateItem(id, name, description, quantity, price, category);
+            return true;
         }
 
-   
         // Remove um item do inventário
-    
+
         public bool DeleteItem(string id)
         {
             try

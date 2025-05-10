@@ -111,6 +111,22 @@ namespace GestaoInventario.Models
             }
         }
 
+        public void UpdateItem(string id, string name, string description, int quantity, decimal price, string category)
+        {
+            var item = GetItemById(id);
+            if (item == null) return;
+
+            item.Name = name;
+            item.Description = description;
+            item.Quantity = quantity;
+            item.Price = price;
+            item.Category = category;
+            item.LastUpdated = DateTime.Now;
+
+            SaveInventory();
+            ItemUpdated?.Invoke(this, item);
+        }
+
         // Remove um item do inventário com base no ID
         public void DeleteItem(string id)
         {

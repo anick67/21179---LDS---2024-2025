@@ -18,11 +18,17 @@ namespace GestaoInventario.Views
         private bool temStockBaixoParaAlertar = false;
         private bool alertaMostrado = false;
 
+        public event EventHandler<Item>? ProdutoAdicionado;
+        public event EventHandler<Item>? ProdutoAtualizado;
+        public event EventHandler<string>? ProdutoRemovido;
+        public event EventHandler? StockCriticoDetectado;
         public Form1(InventoryController controller, IExportadorInventario exportador)
         {
             InitializeComponent();
             _controller = controller;
             _exportador = exportador;
+
+            priceNumeric.DecimalPlaces = 2;
 
             // Impede casas decimais na quantidade e colar texto
             quantityNumeric.DecimalPlaces = 0;
@@ -140,6 +146,16 @@ namespace GestaoInventario.Views
                 ShowMessage("Produto adicionado com sucesso.");
                 RefreshView();
                 LimparCampos();
+
+                // Evento disparado após adição bem-sucedida
+                ProdutoAdicionado?.Invoke(this, new Item
+                {
+                    Name = name,
+                    Description = description,
+                    Quantity = quantity,
+                    Price = price,
+                    Category = category
+                });
             }
             else
             {
@@ -150,11 +166,22 @@ namespace GestaoInventario.Views
         private void updateButton_Click(object sender, EventArgs e)
         {
             string id = idTextBox.Text;
+            string name = nameTextBox.Text;
+            string description = descriptionTextBox.Text;
             int quantity = (int)quantityNumeric.Value;
+            decimal price = priceNumeric.Value;
+            string category = categoryComboBox.Text;
 
-            if (_controller.UpdateItemQuantity(id, quantity))
+            if (_controller.UpdateItem(id, name, description, quantity, price, category))
             {
                 ShowMessage("Produto atualizado.");
+
+                var atualizado = _controller.GetItemById(id);
+                if (atualizado != null)
+                {
+                    ProdutoAtualizado?.Invoke(this, atualizado);
+                }
+
                 RefreshView();
             }
             else
@@ -162,6 +189,7 @@ namespace GestaoInventario.Views
                 ShowMessage("Erro ao atualizar.");
             }
         }
+
 
         private void deleteButton_Click(object sender, EventArgs e)
         {
@@ -186,6 +214,10 @@ namespace GestaoInventario.Views
                     if (_controller.DeleteItem(id))
                     {
                         ShowMessage("Produto removido com sucesso.");
+
+                        // Dispara o evento para informar que um produto foi removido
+                        ProdutoRemovido?.Invoke(this, id);
+
                         RefreshView();
                         LimparCampos();
                     }
@@ -310,7 +342,7 @@ namespace GestaoInventario.Views
             descriptionTextBox.Text = "";
             quantityNumeric.Value = 0;
             priceNumeric.Value = 0;
-            categoryComboBox.SelectedIndex = -1;
+            categoryComboBox.Text = "";
             idTextBox.Text = "";
         }
 
@@ -395,11 +427,10 @@ namespace GestaoInventario.Views
                 if (temStockBaixoParaAlertar && !alertaMostrado)
                 {
                     alertaMostrado = true;
-
-                    MessageBox.Show("Atenção: Existem produtos com stock inferior a 5 unidades.",
-                                    "Aviso de Stock", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
                     temStockBaixoParaAlertar = false;
+
+                    // Dispara o evento em vez de mostrar a MessageBox diretamente
+                    StockCriticoDetectado?.Invoke(this, EventArgs.Empty);
 
                     itemsGrid.ClearSelection();
                     itemsGrid.CurrentCell = null;

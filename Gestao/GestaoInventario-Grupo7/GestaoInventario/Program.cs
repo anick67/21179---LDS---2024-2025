@@ -40,6 +40,13 @@ namespace GestaoInventario
             // Passar o exportador como dependência
             Form1 view = new Form1(controller, exportador);
 
+            // Subscrever o evento que alerta para stock crítico
+            view.StockCriticoDetectado += (s, e) =>
+            {
+                MessageBox.Show("Atenção: Existem produtos com stock inferior a 5 unidades.",
+                                "Aviso de Stock", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            };
+
             try
             {
                 Application.Run(view);
