@@ -244,6 +244,28 @@ namespace GestaoInventario.Views
             LimparCampos();
         }
 
+        // Método que atualiza dinamicamente as categorias na ComboBox
+        private void AtualizarCategoriasComboBox()
+        {
+            var categorias = _controller.GetAllCategorias();
+
+            // Ordena alfabeticamente
+            categorias.Sort();
+
+            categoryComboBox.Items.Clear();
+
+            // Adiciona "Nova categoria..." no topo
+            categoryComboBox.Items.Add("Nova categoria...");
+
+            // Adiciona as restantes categorias
+            foreach (var categoria in categorias)
+            {
+                if (!string.IsNullOrWhiteSpace(categoria))
+                    categoryComboBox.Items.Add(categoria);
+            }
+        }
+
+        // Evento disparado quando muda a seleção da categoria
         private void categoryComboBox_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (categoryComboBox.SelectedItem?.ToString() == "Nova categoria...")
@@ -252,10 +274,16 @@ namespace GestaoInventario.Views
 
                 if (!string.IsNullOrWhiteSpace(novaCategoria))
                 {
-                    if (!categoryComboBox.Items.Contains(novaCategoria))
+                    // Verifica se já existe
+                    bool existe = categoryComboBox.Items.Cast<object>()
+                        .Any(item => item.ToString()?.Equals(novaCategoria, StringComparison.OrdinalIgnoreCase) == true);
+
+                    if (!existe)
                     {
-                        // Inserir antes de "Nova categoria..."
-                        categoryComboBox.Items.Insert(categoryComboBox.Items.Count - 1, novaCategoria);
+                        // Adiciona a seguir a "Nova categoria..."
+                        categoryComboBox.Items.Insert(1, novaCategoria);
+
+                        _controller.AdicionarCategoria(novaCategoria);
                     }
 
                     categoryComboBox.SelectedItem = novaCategoria;
@@ -422,6 +450,7 @@ namespace GestaoInventario.Views
             // Adia a chamada de RefreshView para garantir que o formulário já está visível
             BeginInvoke(new Action(() =>
             {
+                AtualizarCategoriasComboBox();
                 RefreshView();
 
                 if (temStockBaixoParaAlertar && !alertaMostrado)
