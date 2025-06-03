@@ -15,13 +15,11 @@ namespace GestaoInventario.Models
         private readonly string _dataFilePath;
         private readonly string _categoriasFilePath;
 
-        // Evento acionado quando um item é adicionado
-        public delegate void ItemAddedEventHandler(object sender, Item item);
-        public event ItemAddedEventHandler? ItemAdded;
+        // Evento acionado quando um item é adicionado ao inventário
+        public event EventHandler<Item>? ItemAdded;
 
-        // Evento acionado quando um item é atualizado
-        public delegate void ItemUpdatedEventHandler(object sender, Item item);
-        public event ItemUpdatedEventHandler? ItemUpdated;
+        // Evento acionado quando um item existente é atualizado
+        public event EventHandler<Item>? ItemUpdated;
 
         // Construtor que define o caminho do ficheiro e carrega o inventário
         public InventoryModel(string dataFilePath)
@@ -164,18 +162,21 @@ namespace GestaoInventario.Models
         // Atualiza um item com base em parâmetros diretos
         public void UpdateItem(string id, string name, string description, int quantity, decimal price, string category)
         {
-            var item = GetItemById(id);
-            if (item == null) return;
+            var existing = GetItemById(id);
+            if (existing == null) return;
 
-            item.Name = name;
-            item.Description = description;
-            item.Quantity = quantity;
-            item.Price = price;
-            item.Category = category;
-            item.LastUpdated = DateTime.Now;
+            var itemAtualizado = new Item
+            {
+                Id = id,
+                Name = name,
+                Description = description,
+                Quantity = quantity,
+                Price = price,
+                Category = category,
+                LastUpdated = DateTime.Now
+            };
 
-            SaveInventory();
-            ItemUpdated?.Invoke(this, item);
+            UpdateItem(itemAtualizado); // reaproveita o outro método
         }
 
         // Remove um item do inventário com base no ID

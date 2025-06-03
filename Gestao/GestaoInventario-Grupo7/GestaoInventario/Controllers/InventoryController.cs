@@ -20,13 +20,13 @@ namespace GestaoInventario.Controllers
         }
 
         // Evento executado quando um item é adicionado.
-        private void OnItemAdded(object sender, Item item)
+        private void OnItemAdded(object? sender, Item item)
         {
             Console.WriteLine($"[EVENTO] Novo item adicionado: {item.Name}");
         }
 
         // Evento executado quando um item é atualizado.
-        private void OnItemUpdated(object sender, Item item)
+        private void OnItemUpdated(object? sender, Item item)
         {
             Console.WriteLine($"[EVENTO] Quantidade do item atualizada: {item.Quantity}");
         }
@@ -68,8 +68,9 @@ namespace GestaoInventario.Controllers
                 _model.AddItem(item);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[ERRO] Falha ao adicionar item: {ex.Message}");
                 return false;
             }
         }
@@ -92,8 +93,9 @@ namespace GestaoInventario.Controllers
                 _model.DeleteItem(id);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[ERRO] Falha ao remover item: {ex.Message}");
                 return false;
             }
         }

@@ -23,7 +23,8 @@ namespace GestaoInventario
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            string dataFilePath = "inventario.json";
+            const string INVENTARIO_FICHEIRO = "inventario.json";
+            string dataFilePath = INVENTARIO_FICHEIRO;
 
             // Verifica se o ficheiro existe
             if (!File.Exists(dataFilePath))
@@ -37,7 +38,7 @@ namespace GestaoInventario
             // Instanciar o exportador concreto
             IExportadorInventario exportador = new ExportadorExcel();
 
-            // Passar o exportador como dependência
+            // Cria a interface (View) com o controller e o exportador injetados (Injeção de Dependência)
             Form1 view = new Form1(controller, exportador);
 
             // Subscrever o evento que alerta para stock crítico

@@ -7,6 +7,7 @@ using System.Windows.Forms;
 
 namespace GestaoInventario.Services
 {
+    // Exporta uma coleção de itens do inventário para um ficheiro Excel
     public class ExportadorExcel : IExportadorInventario
     {
         public void Exportar(IEnumerable<Item> items, IDestinoExportacao destino)
@@ -23,7 +24,7 @@ namespace GestaoInventario.Services
                 {
                     var worksheet = workbook.Worksheets.Add("Inventário");
 
-                    // Cabeçalho
+                    // Cabeçalhos da tabela
                     string[] headers = { "Nome", "Categoria", "Descrição", "ID", "Quantidade", "Preço" };
                     for (int i = 0; i < headers.Length; i++)
                     {
@@ -33,7 +34,7 @@ namespace GestaoInventario.Services
                         cell.Style.Fill.BackgroundColor = XLColor.LightGray;
                     }
 
-                    // Dados
+                    // Preenche os dados dos itens
                     int row = 2;
                     foreach (var item in items)
                     {
@@ -47,18 +48,21 @@ namespace GestaoInventario.Services
                         row++;
                     }
 
-                    worksheet.Columns().AdjustToContents(); // Ajusta a largura das colunas
+                    worksheet.Columns().AdjustToContents(); // Ajusta largura das colunas
 
+                    // Pede o caminho ao utilizador
                     string? caminho = destino.ObterCaminho();
                     if (string.IsNullOrWhiteSpace(caminho))
                         return;
 
+                    // Guarda o ficheiro Excel
                     workbook.SaveAs(caminho);
                     MessageBox.Show("Exportação concluída com sucesso!", "Exportação", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             catch (IOException ioEx) when ((ioEx.HResult & 0xFFFF) == 32)
             {
+                // Ficheiro já está aberto noutro programa
                 MessageBox.Show("O ficheiro está aberto noutra aplicação. Por favor, feche o ficheiro antes de exportar novamente.",
                                 "Ficheiro em uso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
