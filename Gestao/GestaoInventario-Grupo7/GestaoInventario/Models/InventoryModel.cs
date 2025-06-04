@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using System.Windows.Forms;
 
 namespace GestaoInventario.Models
 {
@@ -43,8 +44,15 @@ namespace GestaoInventario.Models
                 }
                 catch (JsonException)
                 {
-                    Console.WriteLine("Erro ao carregar inventário: ficheiro pode estar corrompido.");
                     _items = new List<Item>();
+
+                    // Mostra aviso ao utilizador
+                    MessageBox.Show(
+                        "Não foi possível carregar o inventário.\nO ficheiro pode estar corrompido ou mal formatado.",
+                        "Erro ao carregar dados",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
                 }
             }
             else
