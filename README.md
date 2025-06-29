@@ -17,4 +17,4 @@ Este projeto consiste numa aplicação de Gestão de inventário, desenvolvida e
 
 1. Clonar o repositório:
    ```bash
-   git clone https://github.com/F-V-Mendes/GestaoInventario.git
+   git clone https://github.com/anick67/21179---LDS---2024-2025.git
